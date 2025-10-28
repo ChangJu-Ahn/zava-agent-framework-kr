@@ -47,32 +47,32 @@ class ZavaFashionReportGenerator:
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        report = f"""# {self.company_name} Clothing Concept Analysis Report
-## Status: APPROVED FOR DEVELOPMENT
+        report = f"""# {self.company_name} 의류 컨셉 분석 보고서
+    ## 상태: 개발 승인
 
-**Report Generated:** {datetime.now().strftime("%B %d, %Y at %I:%M %p")}
-**Concept File:** {concept_data.get('concept_file_name', 'Unknown')}
-**Analysis Version:** {self.report_template_version}
+    **보고서 생성일:** {datetime.now().strftime("%Y년 %m월 %d일 %H:%M")}
+    **컨셉 파일명:** {concept_data.get('concept_file_name', '알 수 없음')}
+    **분석 버전:** {self.report_template_version}
 
----
+    ---
 
-## Executive Summary
+    ## 요약
 
-This clothing concept has been **APPROVED** for development by {self.company_name}'s design team.
-The concept demonstrates strong market potential, design innovation, and production feasibility
-that aligns with {self.company_name}'s brand vision and quality standards.
+    본 의류 컨셉은 {self.company_name} 디자인팀에 의해 **개발 승인**되었습니다.
+    이 컨셉은 {self.company_name}의 브랜드 비전 및 품질 기준에 부합하는 강력한 시장 잠재력, 
+    디자인 혁신성 및 생산 타당성을 보여줍니다.
 
-{f"**Additional Notes:** {approval_feedback}" if approval_feedback else ""}
+    {f"**추가 의견:** {approval_feedback}" if approval_feedback else ""}
 
----
+    ---
 
-## Concept Overview
+    ## 컨셉 개요
 
-**Total Presentation Slides:** {concept_data.get('total_slides', 0)}
-**Concept Elements Identified:** {concept_data.get('concept_summary', {}).get('total_concept_elements', 0)}
+    **전체 프레젠테이션 슬라이드:** {concept_data.get('total_slides', 0)}
+    **식별된 컨셉 요소:** {concept_data.get('concept_summary', {}).get('total_concept_elements', 0)}
 
-### Key Design Elements Presented
-"""
+    ### 주요 디자인 요소
+    """
 
         # Add concept elements from slides
         if 'slides' in concept_data:
@@ -84,101 +84,101 @@ that aligns with {self.company_name}'s brand vision and quality standards.
                 for i, element in enumerate(concept_elements[:10], 1):  # Limit to top 10
                     report += f"\n{i}. {element}"
             else:
-                report += "\n- No specific design elements automatically identified"
+                report += "\n- 자동으로 식별된 특정 디자인 요소 없음"
 
         report += f"""
 
----
+    ---
 
-## Market Analysis & Fashion Trends
+    ## 시장 분석 및 패션 트렌드
 
-{market_analysis}
+    {market_analysis}
 
----
+    ---
 
-## Design & Aesthetic Evaluation
+    ## 디자인 및 미적 평가
 
-{design_analysis}
+    {design_analysis}
 
----
+    ---
 
-## Production & Manufacturing Assessment
+    ## 생산 및 제조 평가
 
-{production_analysis}
+    {production_analysis}
 
----
+    ---
 
-## Next Steps for Development
+    ## 개발을 위한 다음 단계
 
-### Immediate Actions (Next 30 days)
-1. **Design Refinement**
-   - Create detailed technical sketches
-   - Finalize color palette and material specifications
-   - Develop size range and fit guidelines
+    ### 즉시 실행 사항 (향후 30일)
+    1. **디자인 세부화**
+       - 상세한 기술 스케치 작성
+       - 색상 팔레트 및 소재 사양 확정
+       - 사이즈 범위 및 핏 가이드라인 개발
 
-2. **Prototype Development**
-   - Source materials and fabrics
-   - Create initial samples for testing
-   - Conduct fit and wear testing with target demographic
+    2. **프로토타입 개발**
+       - 소재 및 원단 소싱
+       - 테스트용 초기 샘플 제작
+       - 목표 고객층 대상 착용 테스트 실시
 
-3. **Market Validation**
-   - Conduct focus groups with target customers
-   - Analyze competitor positioning
-   - Validate pricing strategy
+    3. **시장 검증**
+       - 목표 고객 대상 포커스 그룹 진행
+       - 경쟁사 포지셔닝 분석
+       - 가격 전략 검증
 
-### Medium-term Goals (60-90 days)
-1. **Production Planning**
-   - Finalize manufacturing partner selection
-   - Establish quality control standards
-   - Plan initial production quantities
+    ### 중기 목표 (60-90일)
+    1. **생산 계획**
+       - 제조 파트너 선정 확정
+       - 품질 관리 기준 수립
+       - 초기 생산 수량 계획
 
-2. **Marketing Strategy**
-   - Develop brand messaging and positioning
-   - Create marketing materials and campaign concepts
-   - Plan launch timeline and channels
+    2. **마케팅 전략**
+       - 브랜드 메시지 및 포지셔닝 개발
+       - 마케팅 자료 및 캠페인 컨셉 제작
+       - 런칭 일정 및 채널 계획
 
-### Long-term Vision (6+ months)
-1. **Collection Expansion**
-   - Identify opportunities for concept extension
-   - Plan seasonal variations and updates
-   - Consider complementary product lines
+    ### 장기 비전 (6개월 이상)
+    1. **컬렉션 확장**
+       - 컨셉 확장 기회 식별
+       - 시즌별 변형 및 업데이트 계획
+       - 보완 제품 라인 고려
 
----
+    ---
 
-## Risk Assessment & Mitigation
+    ## 위험 평가 및 완화 방안
 
-### Low Risk Areas
-- Strong alignment with {self.company_name} brand identity
-- Clear target market identification
-- Feasible production requirements
+    ### 저위험 영역
+    - {self.company_name} 브랜드 아이덴티티와의 강력한 일치성
+    - 명확한 목표 시장 식별
+    - 실현 가능한 생산 요구사항
 
-### Areas Requiring Attention
-- Market timing considerations
-- Material sourcing reliability
-- Competitive landscape evolution
+    ### 주의가 필요한 영역
+    - 시장 타이밍 고려사항
+    - 소재 소싱 안정성
+    - 경쟁 환경 변화
 
-### Recommended Monitoring 📊
-- Fashion trend evolution
-- Customer feedback during development
-- Production cost fluctuations
+    ### 모니터링 권장사항 📊
+    - 패션 트렌드 변화
+    - 개발 단계 중 고객 피드백
+    - 생산 비용 변동
 
----
+    ---
 
-## Approval Details
+    ## 승인 세부사항
 
-**Decision Date:** {datetime.now().strftime("%B %d, %Y")}
-**Decision Status:** APPROVED
-**Approved by:** {self.company_name} Design Review Board
+    **결정일:** {datetime.now().strftime("%Y년 %m월 %d일")}
+    **결정 상태:** 승인
+    **승인자:** {self.company_name} 디자인 검토위원회
 
-This concept has been approved for progression to the next development phase.
-Regular review checkpoints have been scheduled to ensure continued alignment
-with {self.company_name}'s strategic objectives and market conditions.
+    본 컨셉은 다음 개발 단계로 진행하도록 승인되었습니다.
+    {self.company_name}의 전략적 목표 및 시장 상황과의 지속적인 일치를 보장하기 위해
+    정기적인 검토 체크포인트가 예정되어 있습니다.
 
----
+    ---
 
-*Report generated by {self.company_name} Clothing Concept Analysis System*
-*For internal use only - Contains proprietary design and market information*
-"""
+    *본 보고서는 {self.company_name} 의류 컨셉 분석 시스템에서 생성되었습니다*
+    *내부 전용 - 독점 디자인 및 시장 정보 포함*
+    """
 
         return report
 
@@ -201,92 +201,90 @@ with {self.company_name}'s strategic objectives and market conditions.
         Returns:
             Professional email format for concept rejection
         """
-        report = f"""# {self.company_name} Clothing Concept Review - Decision Notification
+        report = f"""# {self.company_name} 의류 컨셉 검토 - 결정 알림
 
-**Date:** {datetime.now().strftime("%B %d, %Y")}
-**Subject:** Re: Clothing Concept Submission - {concept_data.get('concept_file_name', 'Your Concept')}
+    **날짜:** {datetime.now().strftime("%Y년 %m월 %d일")}
+    **제목:** Re: 의류 컨셉 제출 - {concept_data.get('concept_file_name', '요청하신 컨셉')}
 
----
+    ---
 
-## Dear Concept Designer,
+    ## 안녕하세요, 컨셉 디자이너님.
 
-Thank you for submitting your clothing concept to {self.company_name}. We appreciate
-the time and creativity you invested in developing this proposal. Our design review
-team has carefully evaluated your submission against our current strategic priorities,
-market positioning, and production capabilities.
+    {self.company_name}에 의류 컨셉을 제출해 주셔서 감사합니다. 이 제안을 개발하는 데 
+    투자하신 시간과 창의성에 감사드립니다. 저희 디자인 검토팀은 현재의 전략적 우선순위, 
+    시장 포지셔닝 및 생산 역량을 고려하여 귀하의 제출물을 신중하게 평가했습니다.
 
-## Review Decision: Not Selected for Development
+    ## 검토 결정: 개발 진행 불가
 
-After thorough consideration, we have decided not to move forward with this particular
-concept at this time. Please know that this decision reflects our specific business
-needs and market focus rather than the quality or creativity of your work.
+    심도 있는 검토 결과, 현재로서는 이 특정 컨셉을 진행하지 않기로 결정했습니다. 
+    이 결정은 귀하의 작업 품질이나 창의성보다는 저희의 특정 비즈니스 요구사항과 
+    시장 집중도를 반영한 것임을 알려드립니다.
 
----
+    ---
 
-## Detailed Feedback
+    ## 상세 피드백
 
-### Areas of Consideration
-{rejection_reasons}
+    ### 검토 사항
+    {rejection_reasons}
 
-### Constructive Feedback for Future Submissions
-{constructive_feedback if constructive_feedback else "We encourage you to continue developing your design skills and stay informed about current fashion trends and market demands."}
+    ### 향후 제출을 위한 건설적 피드백
+    {constructive_feedback if constructive_feedback else "디자인 기술을 계속 개발하시고 현재 패션 트렌드와 시장 수요에 대한 정보를 지속적으로 파악하시기를 권장합니다."}
 
-{"### Alternative Directions to Consider" if alternative_suggestions else ""}
-{alternative_suggestions if alternative_suggestions else ""}
+    {"### 고려해볼 대안적 방향" if alternative_suggestions else ""}
+    {alternative_suggestions if alternative_suggestions else ""}
 
----
+    ---
 
-## Future Opportunities
+    ## 향후 기회
 
-We value creative partnerships and encourage you to consider resubmitting in the future.
-Here are some ways to strengthen future proposals:
+    저희는 창의적인 파트너십을 소중히 여기며, 향후 다시 제출해 주시기를 권장합니다.
+    향후 제안을 강화할 수 있는 몇 가지 방법은 다음과 같습니다:
 
-### Design Development
-- Ensure clear alignment with {self.company_name}'s brand aesthetic
-- Include detailed technical specifications and material choices
-- Consider sustainability and ethical production factors
+    ### 디자인 개발
+    - {self.company_name}의 브랜드 미학과의 명확한 일치성 확보
+    - 상세한 기술 사양 및 소재 선택 포함
+    - 지속가능성 및 윤리적 생산 요소 고려
 
-### Market Research
-- Demonstrate understanding of target customer preferences
-- Show awareness of current fashion trends and seasonal considerations
-- Include competitive analysis and positioning strategy
+    ### 시장 조사
+    - 목표 고객 선호도에 대한 이해 입증
+    - 현재 패션 트렌드 및 계절적 고려사항에 대한 인식 제시
+    - 경쟁 분석 및 포지셔닝 전략 포함
 
-### Presentation Quality
-- Provide comprehensive visual representations
-- Include clear production timeline and cost considerations
-- Show scalability and collection potential
+    ### 프레젠테이션 품질
+    - 포괄적인 시각적 표현 제공
+    - 명확한 생산 일정 및 비용 고려사항 포함
+    - 확장성 및 컬렉션 잠재력 제시
 
----
+    ---
 
-## Stay Connected
+    ## 연락 유지
 
-We maintain an active network of designers and regularly review new concepts.
-Please feel free to:
+    저희는 디자이너들의 활발한 네트워크를 유지하고 있으며 정기적으로 새로운 컨셉을 검토합니다.
+    부담 없이 다음과 같이 참여해 주시기 바랍니다:
 
-- **Follow our brand updates** to understand our evolving design direction
-- **Attend our designer networking events** when available
-- **Resubmit concepts** that align with our future collection themes
+    - **브랜드 업데이트 팔로우**를 통해 진화하는 디자인 방향 파악
+    - 가능한 경우 **디자이너 네트워킹 이벤트 참석**
+    - 향후 컬렉션 테마에 부합하는 **컨셉 재제출**
 
----
+    ---
 
-## Next Steps
+    ## 다음 단계
 
-If you have questions about this feedback or would like to discuss alternative
-approaches, please don't hesitate to reach out to our design team.
+    이 피드백에 대해 질문이 있으시거나 대안적 접근 방식에 대해 논의하고 싶으시다면, 
+    언제든지 저희 디자인팀에 연락해 주시기 바랍니다.
 
-We wish you continued success in your creative endeavors and look forward to
-seeing your future work.
+    귀하의 창의적인 노력에 지속적인 성공을 기원하며, 향후 귀하의 작업을 기대하겠습니다.
 
-Best regards,
+    감사합니다,
 
-**{self.company_name} Design Review Team**
-*Clothing Concept Evaluation Division*
+    **{self.company_name} 디자인 검토팀**
+    *의류 컨셉 평가부*
 
----
+    ---
 
-*This is an automated review notification generated by the {self.company_name} Concept Analysis System*
-*For questions or clarifications, please contact our design team directly*
-"""
+    *본 메일은 {self.company_name} 컨셉 분석 시스템에서 생성된 자동 검토 알림입니다*
+    *질문이나 설명이 필요하신 경우, 저희 디자인팀에 직접 연락해 주시기 바랍니다*
+    """
 
         return report
 

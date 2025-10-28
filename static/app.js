@@ -169,7 +169,7 @@ function ZavaConceptAnalyzer() {
 
         // Validate PowerPoint format for concept pitches
         if (!file.name.toLowerCase().endsWith('.pptx')) {
-            alert('📋 Please upload a PowerPoint (.pptx) file containing your clothing concept pitch.');
+            alert('📋 의류 컨셉 발표 자료를 담은 PowerPoint (.pptx) 파일을 업로드해 주세요.');
             return;
         }
 
@@ -198,7 +198,7 @@ function ZavaConceptAnalyzer() {
 
         } catch (error) {
             console.error('Upload failed:', error);
-            alert(`Upload failed: ${error.message}`);
+            alert(`업로드 실패: ${error.message}`);
         }
     };
 
@@ -207,7 +207,7 @@ function ZavaConceptAnalyzer() {
      */
     const startAnalysis = async () => {
         if (!uploadedFile) {
-            alert('📋 Please upload a clothing concept file first.');
+            alert('📋 먼저 의류 컨셉 파일을 업로드해 주세요.');
             return;
         }
 
@@ -229,7 +229,7 @@ function ZavaConceptAnalyzer() {
 
         } catch (error) {
             console.error('Analysis startup failed:', error);
-            alert(`Analysis failed to start: ${error.message}`);
+            alert(`분석 시작 실패: ${error.message}`);
             setIsAnalyzing(false);
         }
     };
@@ -262,7 +262,7 @@ function ZavaConceptAnalyzer() {
 
         } catch (error) {
             console.error('Approval submission failed:', error);
-            alert(`Failed to submit approval: ${error.message}`);
+            alert(`승인 제출 실패: ${error.message}`);
         }
     };
 
@@ -278,7 +278,7 @@ function ZavaConceptAnalyzer() {
             // Visual feedback for copy action
             const button = event.target;
             const originalText = button.textContent;
-            button.textContent = 'Copied!';
+            button.textContent = '복사 완료!';
             button.classList.add('copied');
 
             setTimeout(() => {
@@ -288,7 +288,7 @@ function ZavaConceptAnalyzer() {
 
         } catch (error) {
             console.error('Copy failed:', error);
-            alert('Failed to copy to clipboard');
+            alert('클립보드 복사 실패');
         }
     };
 
@@ -318,7 +318,7 @@ function ZavaConceptAnalyzer() {
         <div className="container">
             {/* Connection Status Indicator */}
             <div className={`connection-status ${connectionStatus}`}>
-                {connectionStatus === 'connected' ? '🟢 Connected' : '🔴 Connecting...'}
+                {connectionStatus === 'connected' ? '🟢 연결됨' : '🔴 연결 중...'}
             </div>
 
             {/* Main Header */}
@@ -365,7 +365,7 @@ function ZavaConceptAnalyzer() {
             {analysisStatus.error && (
                 <div className="section">
                     <div className="error-message">
-                        <strong>Analysis Error:</strong> {analysisStatus.error}
+                        <strong>분석 오류:</strong> {analysisStatus.error}
                     </div>
                 </div>
             )}
@@ -379,11 +379,11 @@ function ZavaConceptAnalyzer() {
 function ZavaHeader() {
     return (
         <header className="header">
-            <h1>Zava Clothing Concept Analyzer</h1>
+            <h1>Zava 의류 컨셉 분석기</h1>
             <p>
-                Intelligent fashion concept evaluation powered by AI agents.
-                Upload your clothing concept pitch deck to receive comprehensive
-                market analysis, design evaluation, and production feasibility assessment.
+                AI 에이전트 기반의 지능형 패션 컨셉 평가 시스템입니다.
+                의류 컨셉 발표 자료를 업로드하시면 시장 분석, 디자인 평가, 
+                생산 타당성 분석을 종합적으로 제공합니다.
             </p>
         </header>
     );
@@ -395,7 +395,7 @@ function ZavaHeader() {
 function ConceptUploadSection({ uploadedFile, isAnalyzing, onFileUpload, onStartAnalysis, fileInputRef }) {
     return (
         <section className="section">
-            <h2>📋 Upload Clothing Concept</h2>
+            <h2>📋 의류 컨셉 업로드</h2>
 
             <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
                 <input
@@ -409,18 +409,18 @@ function ConceptUploadSection({ uploadedFile, isAnalyzing, onFileUpload, onStart
 
                 {uploadedFile ? (
                     <div>
-                        <p><strong>Concept Uploaded:</strong> {uploadedFile.name}</p>
-                        <p>Size: {formatFileSize(uploadedFile.size)}</p>
+                        <p><strong>업로드된 컨셉:</strong> {uploadedFile.name}</p>
+                        <p>크기: {formatFileSize(uploadedFile.size)}</p>
                     </div>
                 ) : (
                     <div>
-                        <p>📁 Click here to select your clothing concept pitch deck</p>
-                        <p className="upload-hint">Supports PowerPoint (.pptx) files</p>
+                        <p>📁 의류 컨셉 발표 자료를 선택하려면 여기를 클릭하세요</p>
+                        <p className="upload-hint">PowerPoint (.pptx) 파일 지원</p>
                     </div>
                 )}
 
                 <button className="upload-button" disabled={isAnalyzing}>
-                    {uploadedFile ? 'Change File' : 'Choose File'}
+                    {uploadedFile ? '파일 변경' : '파일 선택'}
                 </button>
             </div>
 
@@ -432,10 +432,10 @@ function ConceptUploadSection({ uploadedFile, isAnalyzing, onFileUpload, onStart
                 {isAnalyzing ? (
                     <>
                         <span className="spinner"></span>
-                        Analyzing Concept...
+                        컨셉 분석 중...
                     </>
                 ) : (
-                    'Start Fashion Analysis'
+                    '패션 분석 시작'
                 )}
             </button>
         </section>
@@ -456,11 +456,11 @@ function AnalysisProgressSection({ analysisStatus }) {
 
     // Map technical step names to user-friendly display names
     const stepDisplayNames = {
-        'Parse Clothing Concept': 'Parse Clothing Concept',
-        'Prepare Fashion Analysis': 'Prepare Fashion Analysis',
-        'Concurrent Fashion Analysis': 'Agent Analysis',
-        'Generate Analysis Report': 'Generate Analysis Report',
-        'Human Review': 'Human Review'
+        'Parse Clothing Concept': '의류 컨셉 파싱',
+        'Prepare Fashion Analysis': '패션 분석 준비',
+        'Concurrent Fashion Analysis': '에이전트 분석',
+        'Generate Analysis Report': '분석 리포트 생성',
+        'Human Review': '직접 관리자 검토'
     };
 
     // Determine completed steps from the latest progress update
@@ -469,7 +469,7 @@ function AnalysisProgressSection({ analysisStatus }) {
 
     return (
         <section className="section">
-            <h2>📊 Analysis Progress</h2>
+            <h2>📊 분석 진행 상황</h2>
 
             <div className="progress-container">
                 <div className="progress-bar">
@@ -480,11 +480,11 @@ function AnalysisProgressSection({ analysisStatus }) {
                 </div>
 
                 <div className="status-text">
-                    {analysisStatus.status === 'waiting_approval' ? 'Waiting for Team Approval' : analysisStatus.current_step}
+                    {analysisStatus.status === 'waiting_approval' ? '팀 승인 대기 중' : analysisStatus.current_step}
                 </div>
 
                 <div className="current-step">
-                    Progress: {analysisStatus.progress}% Complete
+                    진행률: {analysisStatus.progress}% 완료
                 </div>
             </div>
 
@@ -509,7 +509,7 @@ function AnalysisProgressSection({ analysisStatus }) {
 function TeamApprovalSection({ approvalRequest, approvalFeedback, onFeedbackChange, onSubmitApproval }) {
     return (
         <section className="approval-section">
-            <h2>🤔 Zava Team Approval Required</h2>
+            <h2>🤔 Zava 팀 승인 필요</h2>
 
             <div className="approval-question">
                 {approvalRequest.question}
@@ -521,14 +521,14 @@ function TeamApprovalSection({ approvalRequest, approvalFeedback, onFeedbackChan
 
             <div className="feedback-section">
                 <label htmlFor="approval-feedback">
-                    Additional Feedback (Optional):
+                    추가 의견 (선택사항):
                 </label>
                 <textarea
                     id="approval-feedback"
                     className="feedback-textarea"
                     value={approvalFeedback}
                     onChange={(e) => onFeedbackChange(e.target.value)}
-                    placeholder="Provide additional context for your decision..."
+                    placeholder="결정에 대한 추가 의견을 입력하세요..."
                 />
             </div>
 
@@ -537,13 +537,13 @@ function TeamApprovalSection({ approvalRequest, approvalFeedback, onFeedbackChan
                     className="approval-button yes"
                     onClick={() => onSubmitApproval('yes')}
                 >
-                    Approve for Development
+                    개발 승인
                 </button>
                 <button
                     className="approval-button no"
                     onClick={() => onSubmitApproval('no')}
                 >
-                    Reject Concept
+                    컨셉 거절
                 </button>
             </div>
         </section>
@@ -556,7 +556,7 @@ function TeamApprovalSection({ approvalRequest, approvalFeedback, onFeedbackChan
 function AnalysisOutputsSection({ outputs }) {
     return (
         <section className="section">
-            <h2>📝 Analysis Outputs</h2>
+            <h2>📝 분석 결과</h2>
 
             <div className="outputs-container">
                 {outputs.map((output, index) => (
@@ -584,16 +584,16 @@ function FinalResultsSection({ results, onCopyToClipboard }) {
     return (
         <section className={`final-results ${isApproved ? '' : 'rejected'}`}>
             <h2>
-                {isApproved ? 'Concept Approved for Development!' : 'Concept Not Selected'}
+                {isApproved ? '개발 승인된 컨셉!' : '선택되지 않은 컨셉'}
             </h2>
 
             <div className="results-container">
                 <div className="result-preview">
-                    <h3>Analysis Summary</h3>
+                    <h3>분석 요약</h3>
                     <p>
-                        <strong>Decision:</strong> {results.result}
+                        <strong>결정:</strong> {results.result}
                         {results.filename && (
-                            <><br /><strong>Report:</strong> {results.filename}</>
+                            <><br /><strong>리포트:</strong> {results.filename}</>
                         )}
                     </p>
 
@@ -603,7 +603,7 @@ function FinalResultsSection({ results, onCopyToClipboard }) {
                                 className="copy-button"
                                 onClick={() => onCopyToClipboard(results.document)}
                             >
-                                📋 Copy Full Report
+                                📋 전체 리포트 복사
                             </button>
                         </div>
                     )}
@@ -611,7 +611,7 @@ function FinalResultsSection({ results, onCopyToClipboard }) {
 
                 {results.document && (
                     <div className="result-preview">
-                        <h3>Generated Report</h3>
+                        <h3>생성된 리포트</h3>
                         <div className="result-content">
                             {results.document}
                         </div>

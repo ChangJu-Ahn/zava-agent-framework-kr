@@ -213,7 +213,7 @@ class ZavaConceptWorkflowManager:
                 .add_edge(human_approver, approval_manager)\
                 .add_edge(approval_manager, save_approved_concept_report, condition=concept_approval_condition)\
                 .add_edge(approval_manager, draft_concept_rejection_email, condition=concept_rejection_condition)\
-                .add_edge(save_approved_concept_report, handle_approved_concept)\
+                .add_edge(save_approved_concept_report, handle_approved_concㅇept)\
                 .add_edge(draft_concept_rejection_email, handle_rejected_concept)\
                 .build()
 
@@ -466,7 +466,7 @@ class ZavaConceptWorkflowManager:
             raise ValueError(
                 "AZURE_AI_MODEL_DEPLOYMENT_NAME environment variable is required. "
                 "Please set it in your .env file. "
-                "Example: AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4o"
+                "Example: AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini"
             )
 
         try:
@@ -494,9 +494,14 @@ class ZavaConceptWorkflowManager:
                 model_deployment_name=model_deployment_name,
                 async_credential=credential
             )
+            client4 = AzureAIAgentClient(
+                project_endpoint=project_endpoint,
+                model_deployment_name=model_deployment_name,
+                async_credential=credential
+            )
 
             # Use separate clients for each agent to ensure fresh instructions
-            self.chat_clients = [client1, client2, client3]
+            self.chat_clients = [client1, client2, client3, client4]
 
             await self._add_output("System", "Fresh AI chat clients initialized successfully", "info")
 

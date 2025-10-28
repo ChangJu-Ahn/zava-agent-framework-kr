@@ -103,27 +103,26 @@ class ZavaConceptApprovalManager(Executor):
 
         # Create comprehensive context for the approval decision
         approval_context = f"""
-COMPREHENSIVE CLOTHING CONCEPT ANALYSIS SUMMARY
+    종합 의류 컨셉 분석 요약
 
-The fashion analysis agents have completed their evaluation of this clothing concept
-submission. Below is the consolidated analysis covering market potential, design merit,
-and production feasibility:
+    패션 분석 에이전트들이 이 의류 컨셉 제출에 대한 평가를 완료했습니다.
+    아래는 시장 잠재력, 디자인 장점, 생산 가능성을 다루는 통합 분석입니다:
 
- {analysis_text}
+    {analysis_text}
 
-KEY DECISION FACTORS:
-• Market alignment with current fashion trends
-• Design innovation and brand fit with Zava
-• Production feasibility and cost considerations
-• Competitive differentiation potential
-• Strategic alignment with company goals
+    주요 결정 요소:
+    • 현재 패션 트렌드와의 시장 적합성
+    • 디자인 혁신성 및 Zava 브랜드 적합성
+    • 생산 가능성 및 비용 고려사항
+    • 경쟁 차별화 잠재력
+    • 회사 목표와의 전략적 일치성
 
-This decision will determine whether Zava proceeds with concept development
-or provides constructive feedback for future submissions.
+    이 결정은 Zava가 컨셉 개발을 진행할지, 아니면 향후 제출을 위한
+    건설적인 피드백을 제공할지를 결정합니다.
         """.strip()
 
         approval_request = ClothingConceptApprovalRequest(
-            question="Based on the comprehensive fashion analysis above, should Zava approve this clothing concept for development?",
+            question="위의 종합 패션 분석을 바탕으로, Zava가 이 의류 컨셉을 개발 승인해야 할까요?",
             context=approval_context,
             analysis_content=analysis_text
         )

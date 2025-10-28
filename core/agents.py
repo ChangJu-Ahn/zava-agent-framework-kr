@@ -48,18 +48,19 @@ def create_fashion_research_agent(chat_clients_list: List[Any]) -> AgentExecutor
     • **Competition**: 1 sentence
     • **Demand**: 1 sentence
     • **Price**: 1 sentence
-
-    STOP writing after 100 words."""
+    
+    **Finally YOU MUST RESPONSE IN KOREAN LANGUAGE.**
+    """
 
     # Create the market research agent using chat client
     if not chat_clients_list or len(chat_clients_list) == 0:
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
-    chat_client = chat_clients_list[0]
+    # chat_client = chat_clients_list[0]
+    chat_client = chat_clients_list[1]
     research_agent = chat_client.create_agent(
         instructions=system_prompt,
-        name="Fashion Market Research Agent",
-        model_name="gpt-4o"  # or use a default model
+        name="Fashion Market Research Agent"
     )
     # Wrap in AgentExecutor for workflow compatibility
     return AgentExecutor(research_agent, id="fashion_market_research_agent")
@@ -92,18 +93,19 @@ def create_design_evaluation_agent(chat_clients_list: List[Any]) -> AgentExecuto
     • **Technical**: 1 sentence max
     • **Materials**: 1 sentence max
     • **Versatility**: 1 sentence max
-
-    STOP writing after 80 words."""
+    
+    **Finally YOU MUST RESPONSE IN KOREAN LANGUAGE.**
+    """
 
     # Create the design evaluation agent using chat client
     if not chat_clients_list or len(chat_clients_list) == 0:
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
-    chat_client = chat_clients_list[1] if len(chat_clients_list) > 1 else chat_clients_list[0]
+    # chat_client = chat_clients_list[1] if len(chat_clients_list) > 1 else chat_clients_list[0]
+    chat_client = chat_clients_list[2] if len(chat_clients_list) > 1 else chat_clients_list[0]
     design_agent = chat_client.create_agent(
         instructions=system_prompt,
-        name="Fashion Design Evaluation Agent",
-        model_name="gpt-4o"
+        name="Fashion Design Evaluation Agent"
     )
     return AgentExecutor(design_agent, id="fashion_design_evaluation_agent")
 
@@ -136,17 +138,18 @@ def create_production_feasibility_agent(chat_clients_list: List[Any]) -> AgentEx
     • **Quality**: Main concern (1 sentence)
     • **Timeline**: Months needed (1 sentence)
 
-    STOP writing after 70 words."""
+    **Finally YOU MUST RESPONSE IN KOREAN LANGUAGE.**
+    """
 
     # Create the production feasibility agent using chat client
     if not chat_clients_list or len(chat_clients_list) == 0:
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
-    chat_client = chat_clients_list[2] if len(chat_clients_list) > 2 else chat_clients_list[0]
+    # chat_client = chat_clients_list[2] if len(chat_clients_list) > 2 else chat_clients_list[0]
+    chat_client = chat_clients_list[3] if len(chat_clients_list) > 2 else chat_clients_list[0]
     production_agent = chat_client.create_agent(
         instructions=system_prompt,
-        name="Production Feasibility Agent",
-        model_name="gpt-4o"
+        name="Production Feasibility Agent"
     )
     return AgentExecutor(production_agent, id="production_feasibility_agent")
 
@@ -177,8 +180,9 @@ def create_comprehensive_analysis_agent(chat_clients_list: List[Any]) -> AgentEx
     • **Opportunity**: Revenue potential (1 sentence)
     • **Risks**: Top 2 concerns (bullets)
     • **Actions**: Top 2 next steps (bullets)
-
-    STOP writing after 100 words."""
+    
+    **Finally YOU MUST RESPONSE IN KOREAN LANGUAGE.**
+    """
 
     # Create the comprehensive analysis agent using chat client
     if not chat_clients_list or len(chat_clients_list) == 0:
@@ -187,8 +191,7 @@ def create_comprehensive_analysis_agent(chat_clients_list: List[Any]) -> AgentEx
     chat_client = chat_clients_list[-1]  # Use the last client in the list
     comprehensive_agent = chat_client.create_agent(
         instructions=system_prompt,
-        name="Comprehensive Fashion Analysis Agent",
-        model_name="gpt-4o"
+        name="Comprehensive Fashion Analysis Agent"
     )
     return AgentExecutor(comprehensive_agent, id="comprehensive_fashion_analysis_agent")
 
@@ -258,7 +261,10 @@ def create_concept_report_writer_agent(chat_clients_list: List[Any]) -> AgentExe
     • **Risks**: Top 2 risks (bullet points)
     • **Next Steps**: If approved, top 2 actions (bullet points)
 
-    STOP writing after 150 words."""
+    STOP writing after 150 words.
+    
+    **Finally YOU MUST RESPONSE IN KOREAN LANGUAGE.**
+    """
 
     # Create the report writer agent using chat client
     if not chat_clients_list or len(chat_clients_list) == 0:
@@ -267,7 +273,6 @@ def create_concept_report_writer_agent(chat_clients_list: List[Any]) -> AgentExe
     chat_client = chat_clients_list[0]
     report_agent = chat_client.create_agent(
         instructions=system_prompt,
-        name="Concept Report Writer Agent",
-        model_name="gpt-4o"
+        name="Concept Report Writer Agent"
     )
     return AgentExecutor(report_agent, id="concept_report_writer_agent")
