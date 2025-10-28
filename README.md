@@ -1,3 +1,10 @@
+- 원본 리포는 [여기](https://github.com/e-straight/zava-agent-framework)를 참고해 주세요.
+- 해당 시나리오를 기반으로 본사에서 진행한 AI Show: On Demand 영상은 [여기](https://www.youtube.com/watch?v=VBz5HMYIRI4)를 참고해 주세요.
+<img width="184" height="101" alt="image" src="https://github.com/user-attachments/assets/f611fa76-3480-491e-b1dc-1cebd9f22d9d" />
+
+
+---
+
 # Zava 의류 컨셉 분석 시스템
 
 > **Microsoft Agent Framework를 활용한 지능형 패션 컨셉 평가 시스템**
