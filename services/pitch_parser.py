@@ -6,8 +6,9 @@ containing new clothing concept proposals for Zava.
 """
 
 import json
-from typing import Dict, List, Any
 from pathlib import Path
+from typing import Any, Dict
+
 from pptx import Presentation
 
 

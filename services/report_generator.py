@@ -5,10 +5,8 @@ This module handles the generation of comprehensive analysis reports
 for clothing concepts submitted to Zava.
 """
 
-import json
 from datetime import datetime
-from typing import Dict, Any, List
-from pathlib import Path
+from typing import Any, Dict
 
 
 class ZavaFashionReportGenerator:

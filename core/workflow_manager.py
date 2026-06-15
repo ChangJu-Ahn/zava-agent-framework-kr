@@ -6,51 +6,35 @@ pitches submitted to Zava, from initial parsing through final approval decisions
 """
 
 import asyncio
-import json
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, Optional, List, Callable
-from dotenv import load_dotenv
+from typing import Any, Callable, Dict, List, Optional
 
 from agent_framework import (
-    ChatMessage,
-    Executor,
-    Role,
     WorkflowBuilder,
-    WorkflowOutputEvent,
-    WorkflowStatusEvent,
-    WorkflowRunState,
-    WorkflowContext,
     WorkflowExecutor,
-    RequestInfoEvent,
-    RequestResponse
+    WorkflowRunState,
 )
+from dotenv import load_dotenv
+
+from core.agents import (
+    create_concept_report_writer_agent,
+    create_concurrent_fashion_analysis_workflow,
+)
+from core.approval import ZavaConceptApprovalManager, concept_approval_condition, concept_rejection_condition
 
 # Import our modular components
 from core.executors import (
-    process_clothing_concept_pitch,
-    log_fashion_analysis_outputs,
     adapt_concept_for_analysis,
-    extract_analysis_prompt,
     convert_report_to_approval_request,
-    save_approved_concept_report,
     draft_concept_rejection_email,
+    extract_analysis_prompt,
     handle_approved_concept,
-    handle_rejected_concept
-)
-from core.agents import (
-    create_fashion_research_agent,
-    create_design_evaluation_agent,
-    create_production_feasibility_agent,
-    create_concurrent_fashion_analysis_workflow,
-    create_concept_report_writer_agent
-)
-from core.approval import (
-    ZavaConceptApprovalManager,
-    create_zava_human_approver,
-    concept_approval_condition,
-    concept_rejection_condition
+    handle_rejected_concept,
+    log_fashion_analysis_outputs,
+    process_clothing_concept_pitch,
+    save_approved_concept_report,
 )
 
 
@@ -150,9 +134,15 @@ class ZavaConceptWorkflowManager:
                         # Create fresh workflow stream for retry
                         if hasattr(self, '_last_stream_params'):
                             if self._last_stream_params.get('pending_requests'):
-                                workflow_stream = self.workflow.send_responses_streaming(self._last_stream_params['pending_requests'])
+                                workflow_stream = self.workflow.run(
+                                    stream=True,
+                                    responses=self._last_stream_params['pending_requests']
+                                )
                             else:
-                                workflow_stream = self.workflow.run_stream(self._last_stream_params['concept_file_path'])
+                                workflow_stream = self.workflow.run(
+                                    self._last_stream_params['concept_file_path'],
+                                    stream=True
+                                )
                         continue
                     else:
                         await self._add_output("System", f"Rate limit exceeded after {max_retries} attempts", "error")
@@ -193,15 +183,17 @@ class ZavaConceptWorkflowManager:
             print("Creating WorkflowExecutor for concurrent fashion analysis...")
             concurrent_analysis_subworkflow = WorkflowExecutor(concurrent_analysis_workflow, id="concurrent_fashion_analysis")
 
-            # Create approval management components
+            # Create approval management component
             await self._update_progress("Setting up approval workflow...", 25)
-            human_approver = create_zava_human_approver()
             approval_manager = ZavaConceptApprovalManager()
 
-            # Build the complete workflow graph
+            # Build the complete workflow graph.
+            # In the GA Agent Framework the human-in-the-loop step is handled inside
+            # ZavaConceptApprovalManager via ctx.request_info + @response_handler, so
+            # there is no longer a standalone RequestInfoExecutor node or the
+            # approval_manager <-> human_approver edge pair.
             await self._update_progress("Assembling workflow components...", 30)
-            self.workflow = WorkflowBuilder()\
-                .set_start_executor(process_clothing_concept_pitch)\
+            self.workflow = WorkflowBuilder(start_executor=process_clothing_concept_pitch)\
                 .add_edge(process_clothing_concept_pitch, adapt_concept_for_analysis)\
                 .add_edge(adapt_concept_for_analysis, extract_analysis_prompt)\
                 .add_edge(extract_analysis_prompt, concurrent_analysis_subworkflow)\
@@ -209,11 +201,9 @@ class ZavaConceptWorkflowManager:
                 .add_edge(log_fashion_analysis_outputs, concept_report_writer)\
                 .add_edge(concept_report_writer, convert_report_to_approval_request)\
                 .add_edge(convert_report_to_approval_request, approval_manager)\
-                .add_edge(approval_manager, human_approver)\
-                .add_edge(human_approver, approval_manager)\
                 .add_edge(approval_manager, save_approved_concept_report, condition=concept_approval_condition)\
                 .add_edge(approval_manager, draft_concept_rejection_email, condition=concept_rejection_condition)\
-                .add_edge(save_approved_concept_report, handle_approved_concㅇept)\
+                .add_edge(save_approved_concept_report, handle_approved_concept)\
                 .add_edge(draft_concept_rejection_email, handle_rejected_concept)\
                 .build()
 
@@ -266,35 +256,11 @@ class ZavaConceptWorkflowManager:
                 "completed_steps": []
             })
 
-            # Initialize shared state for RequestInfoExecutor
+            # In the GA Agent Framework, human-in-the-loop pending requests are managed
+            # internally by the workflow runtime (via ctx.request_info / run(responses=...)).
+            # No manual shared-state initialization is required anymore.
             print("=" * 80)
-            print("WORKFLOW: INITIALIZING SHARED STATE FOR HUMAN APPROVAL")
-            print("=" * 80)
-
-            try:
-                if self.workflow:
-                    print(f"WORKFLOW: Workflow object available: {type(self.workflow)}")
-
-                    # Try to access and initialize the workflow's shared state using proper SharedState API
-                    if hasattr(self.workflow, '_shared_state') and self.workflow._shared_state is not None:
-                        print(f"WORKFLOW: Found _shared_state: {type(self.workflow._shared_state)}")
-                        await self.workflow._shared_state.set('_af_pending_request_info', {})
-                        await self._add_output("System", "Initialized workflow shared state for human approval", "info")
-                        print("WORKFLOW: Successfully initialized _shared_state")
-                    elif hasattr(self.workflow, 'shared_state') and self.workflow.shared_state is not None:
-                        print(f"WORKFLOW: Found shared_state: {type(self.workflow.shared_state)}")
-                        await self.workflow.shared_state.set('_af_pending_request_info', {})
-                        await self._add_output("System", "Initialized workflow shared state (alt) for human approval", "info")
-                        print("WORKFLOW: Successfully initialized shared_state")
-                    else:
-                        print("WORKFLOW: No shared state found on workflow object")
-                        await self._add_output("System", "Workflow shared state not accessible - approval may have issues", "warning")
-                else:
-                    print("WORKFLOW: No workflow object available")
-            except Exception as e:
-                print(f"WORKFLOW: Shared state initialization failed: {str(e)}")
-                await self._add_output("System", f"Warning: Could not initialize shared state for approval: {str(e)}", "warning")
-
+            print("WORKFLOW: READY FOR HUMAN-IN-THE-LOOP APPROVAL (ctx.request_info)")
             print("=" * 80)
 
             # Execute the workflow with human-in-the-loop approval
@@ -305,10 +271,10 @@ class ZavaConceptWorkflowManager:
             while not workflow_idle:
                 # Run workflow iteration
                 if pending_requests:
-                    stream = self.workflow.send_responses_streaming(pending_requests)
+                    stream = self.workflow.run(stream=True, responses=pending_requests)
                     self._last_stream_params = {'pending_requests': pending_requests}
                 else:
-                    stream = self.workflow.run_stream(concept_file_path)
+                    stream = self.workflow.run(concept_file_path, stream=True)
                     self._last_stream_params = {'concept_file_path': concept_file_path}
 
                 # Process all events from this iteration with retry logic
@@ -332,7 +298,9 @@ class ZavaConceptWorkflowManager:
                     # Track progress based on event information
                     await self._track_workflow_progress(event)
 
-                    if isinstance(event, WorkflowOutputEvent):
+                    event_type = getattr(event, "type", None)
+
+                    if event_type == "output":
                         workflow_output = event.data
                         await self._update_progress("Save Results", 100, {
                             "current_step": "Save Results",
@@ -348,13 +316,23 @@ class ZavaConceptWorkflowManager:
                         })
                         await self._add_output("Workflow", f"Concept analysis completed: {event.data}", "success")
 
-                    if isinstance(event, WorkflowStatusEvent):
+                    elif event_type == "status":
+                        # The workflow run is idle once there are no more pending requests.
                         if event.state in [WorkflowRunState.IDLE, WorkflowRunState.FAILED]:
                             workflow_idle = True
                             if event.state == WorkflowRunState.FAILED:
                                 await self._add_output("Workflow", "Workflow execution failed", "error")
 
-                    elif isinstance(event, RequestInfoEvent):
+                    elif event_type == "failed":
+                        # Distinct from a "status" event whose state is FAILED: a
+                        # dedicated "failed" event carries error ``details`` for a
+                        # specific failure, whereas the "status" branch above reports
+                        # the overall run reaching a FAILED terminal state. Either may
+                        # be emitted, so both are handled to ensure the loop stops.
+                        workflow_idle = True
+                        await self._add_output("Workflow", f"Workflow execution failed: {getattr(event, 'details', '')}", "error")
+
+                    elif event_type == "request_info":
                         # Human approval required
                         print("=" * 60)
                         print("WORKFLOW: HUMAN APPROVAL REQUEST DETECTED!")
@@ -410,7 +388,7 @@ class ZavaConceptWorkflowManager:
                         # Send it directly - RequestInfoExecutor will handle the wrapping
                         pending_requests[request_id] = approval_response
 
-                        print(f"WORKFLOW: Created RequestResponse for next iteration")
+                        print("WORKFLOW: Created RequestResponse for next iteration")
                         print("=" * 80)
 
                         await self._add_output("Human", f"Decision: {approval_response}", "decision")
@@ -470,34 +448,34 @@ class ZavaConceptWorkflowManager:
             )
 
         try:
-            from agent_framework_azure_ai import AzureAIAgentClient
+            from agent_framework.foundry import FoundryChatClient
             from azure.identity.aio import AzureCliCredential
 
-            await self._add_output("System", f"Initializing Azure AI Agent clients with endpoint and model: {model_deployment_name}", "info")
+            await self._add_output("System", f"Initializing Foundry chat clients with endpoint and model: {model_deployment_name}", "info")
 
             # Create Azure CLI credential for authentication
             credential = AzureCliCredential()
 
-            # Initialize multiple Azure AI Agent clients to avoid caching
-            client1 = AzureAIAgentClient(
+            # Initialize multiple Foundry chat clients to avoid caching
+            client1 = FoundryChatClient(
                 project_endpoint=project_endpoint,
-                model_deployment_name=model_deployment_name,
-                async_credential=credential
+                model=model_deployment_name,
+                credential=credential
             )
-            client2 = AzureAIAgentClient(
+            client2 = FoundryChatClient(
                 project_endpoint=project_endpoint,
-                model_deployment_name=model_deployment_name,
-                async_credential=credential
+                model=model_deployment_name,
+                credential=credential
             )
-            client3 = AzureAIAgentClient(
+            client3 = FoundryChatClient(
                 project_endpoint=project_endpoint,
-                model_deployment_name=model_deployment_name,
-                async_credential=credential
+                model=model_deployment_name,
+                credential=credential
             )
-            client4 = AzureAIAgentClient(
+            client4 = FoundryChatClient(
                 project_endpoint=project_endpoint,
-                model_deployment_name=model_deployment_name,
-                async_credential=credential
+                model=model_deployment_name,
+                credential=credential
             )
 
             # Use separate clients for each agent to ensure fresh instructions
@@ -507,7 +485,7 @@ class ZavaConceptWorkflowManager:
 
         except Exception as e:
             error_msg = (
-                f"Failed to initialize Azure AI Agent client: {str(e)}\n"
+                f"Failed to initialize Foundry chat client: {str(e)}\n"
                 f"Please ensure:\n"
                 f"1. AZURE_AI_PROJECT_ENDPOINT is correctly set in .env\n"
                 f"2. AZURE_AI_MODEL_DEPLOYMENT_NAME is correctly set in .env\n"
@@ -538,15 +516,15 @@ class ZavaConceptWorkflowManager:
 
     async def _track_workflow_progress(self, event) -> None:
         """Track workflow progress based on workflow events."""
-        # Extract executor ID from event
+        # Extract executor ID from event.
+        # In the GA Agent Framework, output/diagnostic events expose ``executor_id``
+        # and request_info events expose ``source_executor_id``.
         executor_id = None
 
-        if hasattr(event, 'metadata') and event.metadata:
-            executor_id = event.metadata.get('executor_id')
-        elif hasattr(event, 'executor_id'):
+        if getattr(event, 'executor_id', None):
             executor_id = event.executor_id
-        elif hasattr(event, 'source') and hasattr(event.source, 'id'):
-            executor_id = event.source.id
+        elif getattr(event, 'type', None) == "request_info":
+            executor_id = event.source_executor_id
 
         # Update progress if this is a tracked step
         if executor_id and executor_id in self.workflow_steps and executor_id not in self.completed_steps:
