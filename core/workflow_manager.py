@@ -324,6 +324,11 @@ class ZavaConceptWorkflowManager:
                                 await self._add_output("Workflow", "Workflow execution failed", "error")
 
                     elif event_type == "failed":
+                        # Distinct from a "status" event whose state is FAILED: a
+                        # dedicated "failed" event carries error ``details`` for a
+                        # specific failure, whereas the "status" branch above reports
+                        # the overall run reaching a FAILED terminal state. Either may
+                        # be emitted, so both are handled to ensure the loop stops.
                         workflow_idle = True
                         await self._add_output("Workflow", f"Workflow execution failed: {getattr(event, 'details', '')}", "error")
 

@@ -4,10 +4,14 @@ description = "Zava Clothing Company concept pitch deck analysis workflow"
 version = "1.0.0"
 requires-python = ">=3.10"
 dependencies = [
-    # Microsoft Agent Framework - GA release from PyPI
-    "agent-framework==1.8.1",
+    # Microsoft Agent Framework - GA release from PyPI.
+    # agent-framework-core provides the `agent_framework` package (workflows,
+    # agents, executors). We intentionally depend on it directly instead of the
+    # `agent-framework` meta-package, which pulls in agent-framework-core[all]
+    # (every optional connector) and is far heavier than this demo needs.
     "agent-framework-core==1.8.1",
-    # Azure AI Foundry integration (replaces the pre-GA agent-framework-azure-ai package)
+    # Azure AI Foundry integration (replaces the pre-GA agent-framework-azure-ai
+    # package); provides agent_framework.foundry.FoundryChatClient.
     "agent-framework-foundry==1.8.1",
     # PowerPoint processing
     "python-pptx>=0.6.23",
@@ -26,6 +30,9 @@ dependencies = [
 
 [tool.uv]
 package = false
+# agent-framework-foundry pins azure-ai-inference to a pre-release (1.0.0bN),
+# so pre-releases must be permitted for the lock to resolve.
+prerelease = "allow"
 
 # Code formatting and linting configuration
 [tool.ruff]

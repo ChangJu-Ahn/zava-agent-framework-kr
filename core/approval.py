@@ -146,8 +146,10 @@ class ZavaConceptApprovalManager(Executor):
         print("APPROVAL MANAGER: route_decision response handler called")
         print("=" * 80)
         print(f"APPROVAL MANAGER: Received feedback: {feedback}")
-        print(f"APPROVAL MANAGER: Original request question: "
-              f"{original_request.question[:50]}..." if original_request else "N/A")
+        question_preview = (
+            f"{original_request.question[:50]}..." if original_request else "N/A"
+        )
+        print(f"APPROVAL MANAGER: Original request question: {question_preview}")
 
         print("Processing human approval response...")
         human_input = (feedback or "").strip().lower()
