@@ -4,10 +4,11 @@ description = "Zava Clothing Company concept pitch deck analysis workflow"
 version = "1.0.0"
 requires-python = ">=3.10"
 dependencies = [
-    # Agent Framework - from PyPI
-    "agent-framework",
-    "agent-framework-core[viz]",
-    "agent-framework-azure-ai",
+    # Microsoft Agent Framework - GA release from PyPI
+    "agent-framework==1.8.1",
+    "agent-framework-core==1.8.1",
+    # Azure AI Foundry integration (replaces the pre-GA agent-framework-azure-ai package)
+    "agent-framework-foundry==1.8.1",
     # PowerPoint processing
     "python-pptx>=0.6.23",
     # Environment and configuration

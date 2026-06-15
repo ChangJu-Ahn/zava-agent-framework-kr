@@ -50,9 +50,9 @@ async def create_concurrent_fashion_analysis_workflow(chat_clients_list: List[An
     production_agent = create_production_feasibility_agent(chat_clients_list)
 
     # ConcurrentBuilder로 병렬 실행 워크플로우 구성
-    workflow = ConcurrentBuilder()\
-        .participants([market_agent, design_agent, production_agent])\
-        .build()
+    workflow = ConcurrentBuilder(
+        participants=[market_agent, design_agent, production_agent]
+    ).build()
     
     return workflow
 ```
@@ -97,8 +97,7 @@ async def build_concept_evaluation_workflow(self) -> bool:
     )
     
     # 전체 워크플로우 구성
-    self.workflow = WorkflowBuilder()\
-        .set_start_executor(process_clothing_concept_pitch)\
+    self.workflow = WorkflowBuilder(start_executor=process_clothing_concept_pitch)\
         .add_edge(process_clothing_concept_pitch, adapt_concept_for_analysis)\
         .add_edge(adapt_concept_for_analysis, extract_analysis_prompt)\
         .add_edge(extract_analysis_prompt, concurrent_analysis_subworkflow)\  # 서브워크플로우 통합
@@ -106,8 +105,6 @@ async def build_concept_evaluation_workflow(self) -> bool:
         .add_edge(log_fashion_analysis_outputs, concept_report_writer)\
         .add_edge(concept_report_writer, convert_report_to_approval_request)\
         .add_edge(convert_report_to_approval_request, approval_manager)\
-        .add_edge(approval_manager, human_approver)\  # Human-in-the-Loop
-        .add_edge(human_approver, approval_manager)\
         .add_edge(approval_manager, save_approved_concept_report, 
                   condition=concept_approval_condition)\  # 조건부 라우팅
         .add_edge(approval_manager, draft_concept_rejection_email, 
@@ -123,7 +120,7 @@ async def build_concept_evaluation_workflow(self) -> bool:
 1. **선형 실행**: PPT 파싱 → 데이터 변환 → 프롬프트 추출
 2. **병렬 실행**: 세 개의 에이전트가 동시에 분석 (서브워크플로우)
 3. **결과 통합**: 병렬 분석 결과를 하나의 리포트로 합성
-4. **Human-in-the-Loop**: 사람의 승인 대기 (`RequestInfoExecutor`)
+4. **Human-in-the-Loop**: 사람의 승인 대기 (`ctx.request_info` + `@response_handler`)
 5. **조건부 분기**: 승인/거부 결정에 따라 다른 executor 실행
 6. **최종 처리**: 승인 리포트 저장 또는 거부 이메일 작성
 
@@ -140,7 +137,6 @@ flowchart TD
   concept_report_writer_agent["concept_report_writer_agent"];
   convert_report_to_approval_request["convert_report_to_approval_request"];
   zava_approval_manager["zava_approval_manager"];
-  zava_human_approver["zava_human_approver"];
   save_approved_concept_report["save_approved_concept_report"];
   draft_concept_rejection_email["draft_concept_rejection_email"];
   approved_concept_handler["approved_concept_handler"];
@@ -152,8 +148,6 @@ flowchart TD
   concurrent_fashion_analysis_logger --> concept_report_writer_agent;
   concept_report_writer_agent --> convert_report_to_approval_request;
   convert_report_to_approval_request --> zava_approval_manager;
-  zava_approval_manager --> zava_human_approver;
-  zava_human_approver --> zava_approval_manager;
   zava_approval_manager -. conditional .-> save_approved_concept_report;
   zava_approval_manager -. conditional .-> draft_concept_rejection_email;
   save_approved_concept_report --> approved_concept_handler;
@@ -186,8 +180,8 @@ flowchart TD
 | 4 | `concurrent_fashion_analysis` | **🔥 병렬 에이전트 실행** (ConcurrentBuilder) | 세 개의 전문 에이전트 동시 실행 |
 | 5 | `log_fashion_analysis_outputs` | 병렬 실행 결과 수집 및 통합 | 에이전트별 응답 분류 및 구조화 |
 | 6 | `concept_report_writer_agent` | AI 에이전트가 종합 리포트 작성 | 모든 분석 결과를 기반으로 최종 평가 |
-| 7 | `convert_report_to_approval_request` | 리포트를 승인 요청으로 변환 | `RequestInfoMessage` 생성 |
-| 8 | `zava_human_approver` | **👤 Human-in-the-Loop** | `RequestInfoExecutor` 활용 |
+| 7 | `convert_report_to_approval_request` | 리포트를 승인 요청으로 변환 | `ctx.request_info` 호출 |
+| 8 | `zava_approval_manager` | **👤 Human-in-the-Loop** | `ctx.request_info` + `@response_handler` 활용 |
 | 9a | `save_approved_concept_report` | 승인 시 상세 개발 리포트 생성 | Markdown 형식 리포트 저장 |
 | 9b | `draft_concept_rejection_email` | 거부 시 피드백 이메일 작성 | 건설적 피드백 포함 |
 
@@ -202,14 +196,14 @@ Microsoft Agent Framework는 **단독으로도** 강력하지만, **Azure AI Fou
 #### 1. **통합 모델 관리**
 ```python
 # core/workflow_manager.py - Azure AI Foundry 클라이언트 초기화
-from agent_framework_azure_ai import AzureAIAgentClient
+from agent_framework.foundry import FoundryChatClient
 from azure.identity.aio import AzureCliCredential
 
 # Azure AI Foundry 프로젝트에 연결
-client = AzureAIAgentClient(
+client = FoundryChatClient(
     project_endpoint=os.getenv("AZURE_AI_PROJECT_ENDPOINT"),
-    model_deployment_name=os.getenv("AZURE_AI_MODEL_DEPLOYMENT_NAME"),
-    async_credential=AzureCliCredential()
+    model=os.getenv("AZURE_AI_MODEL_DEPLOYMENT_NAME"),
+    credential=AzureCliCredential()
 )
 ```
 
@@ -228,9 +222,10 @@ client = AzureAIAgentClient(
 ```python
 # Azure CLI 기반 인증으로 안전한 접근
 credential = AzureCliCredential()
-client = AzureAIAgentClient(
+client = FoundryChatClient(
     project_endpoint=project_endpoint,
-    async_credential=credential  # Azure Entra ID 인증
+    model=model_deployment_name,
+    credential=credential  # Azure Entra ID 인증
 )
 ```
 
@@ -357,10 +352,10 @@ def create_fashion_research_agent(chat_clients_list: List[Any]) -> AgentExecutor
     """
     
     chat_client = chat_clients_list[0]
-    research_agent = chat_client.create_agent(
+    research_agent = Agent(
+        client=chat_client,
         instructions=system_prompt,
-        name="Fashion Market Research Agent",
-        model_name="gpt-5-mini"
+        name="Fashion Market Research Agent"
     )
     
     return AgentExecutor(research_agent, id="fashion_market_research_agent")
@@ -378,9 +373,9 @@ async def create_concurrent_fashion_analysis_workflow(chat_clients_list: List[An
     production_agent = create_production_feasibility_agent(chat_clients_list)
     
     # ConcurrentBuilder로 병렬 실행 구성
-    workflow = ConcurrentBuilder()\
-        .participants([market_agent, design_agent, production_agent])\
-        .build()
+    workflow = ConcurrentBuilder(
+        participants=[market_agent, design_agent, production_agent]
+    ).build()
     
     return workflow
 ```
@@ -401,13 +396,11 @@ async def build_concept_evaluation_workflow(self) -> bool:
         id="concurrent_fashion_analysis"
     )
     
-    # 2. Human Approver 생성
-    human_approver = create_zava_human_approver()
+    # 2. 승인 관리자 생성 (Human-in-the-Loop은 ctx.request_info로 처리)
     approval_manager = ZavaConceptApprovalManager()
     
     # 3. 전체 워크플로우 구성
-    self.workflow = WorkflowBuilder()\
-        .set_start_executor(process_clothing_concept_pitch)\
+    self.workflow = WorkflowBuilder(start_executor=process_clothing_concept_pitch)\
         .add_edge(process_clothing_concept_pitch, adapt_concept_for_analysis)\
         .add_edge(adapt_concept_for_analysis, extract_analysis_prompt)\
         .add_edge(extract_analysis_prompt, concurrent_analysis_subworkflow)\
@@ -415,8 +408,6 @@ async def build_concept_evaluation_workflow(self) -> bool:
         .add_edge(log_fashion_analysis_outputs, concept_report_writer)\
         .add_edge(concept_report_writer, convert_report_to_approval_request)\
         .add_edge(convert_report_to_approval_request, approval_manager)\
-        .add_edge(approval_manager, human_approver)\
-        .add_edge(human_approver, approval_manager)\
         .add_edge(approval_manager, save_approved_concept_report, 
                   condition=concept_approval_condition)\
         .add_edge(approval_manager, draft_concept_rejection_email, 
@@ -478,7 +469,7 @@ def concept_rejection_condition(decision: Any) -> bool:
 ```python
 async def _initialize_chat_clients(self) -> None:
     """Azure AI Foundry 클라이언트 초기화"""
-    from agent_framework_azure_ai import AzureAIAgentClient
+    from agent_framework.foundry import FoundryChatClient
     from azure.identity.aio import AzureCliCredential
     
     project_endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
@@ -488,20 +479,20 @@ async def _initialize_chat_clients(self) -> None:
     credential = AzureCliCredential()
     
     # 여러 에이전트를 위한 클라이언트 생성
-    client1 = AzureAIAgentClient(
+    client1 = FoundryChatClient(
         project_endpoint=project_endpoint,
-        model_deployment_name=model_deployment_name,
-        async_credential=credential
+        model=model_deployment_name,
+        credential=credential
     )
-    client2 = AzureAIAgentClient(
+    client2 = FoundryChatClient(
         project_endpoint=project_endpoint,
-        model_deployment_name=model_deployment_name,
-        async_credential=credential
+        model=model_deployment_name,
+        credential=credential
     )
-    client3 = AzureAIAgentClient(
+    client3 = FoundryChatClient(
         project_endpoint=project_endpoint,
-        model_deployment_name=model_deployment_name,
-        async_credential=credential
+        model=model_deployment_name,
+        credential=credential
     )
     
     self.chat_clients = [client1, client2, client3]

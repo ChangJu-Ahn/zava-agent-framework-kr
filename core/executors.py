@@ -6,18 +6,15 @@ pitches through various analysis stages.
 """
 
 import json
-from datetime import datetime
-from pathlib import Path
-from typing import Any
 import uuid
+from datetime import datetime
+from typing import Any
 
 from agent_framework import (
+    AgentExecutorResponse,
     WorkflowContext,
     executor,
-    AgentExecutorResponse,
-    Message
 )
-from core.approval import ClothingConceptApprovalRequest
 
 from services.pitch_parser import extract_clothing_concept_data
 from services.report_generator import ZavaFashionReportGenerator
@@ -103,7 +100,7 @@ async def extract_analysis_prompt(data_package_json: str, ctx: WorkflowContext[s
 
         print(f"INTERMEDIATE: Extracted workflow_id: {workflow_id}")
         print(f"INTERMEDIATE: Analysis prompt length: {len(analysis_prompt)} characters")
-        print(f"INTERMEDIATE: Sending analysis prompt to concurrent workflow")
+        print("INTERMEDIATE: Sending analysis prompt to concurrent workflow")
 
         # Also store the workflow_id in cache so step 4 can retrieve it
         _concept_metadata_cache["current_workflow_id"] = workflow_id
@@ -229,8 +226,8 @@ async def log_fashion_analysis_outputs(concurrent_message: Any, ctx: WorkflowCon
             analysis_content = ""
             if hasattr(response, 'output') and response.output:
                 analysis_content = str(response.output).strip()
-            elif hasattr(response, 'agent_run_response') and response.agent_run_response:
-                analysis_content = str(response.agent_run_response).strip()
+            elif hasattr(response, 'agent_response') and response.agent_response:
+                analysis_content = str(response.agent_response).strip()
             elif hasattr(response, 'executor_id'):
                 analysis_content = f"Analysis completed by {response.executor_id}"
             else:
@@ -279,7 +276,7 @@ async def log_fashion_analysis_outputs(concurrent_message: Any, ctx: WorkflowCon
         print("=" * 80)
         print(f"ROUTING: Sending consolidated_json type: {type(consolidated_json)}")
         print(f"ROUTING: Consolidated JSON length: {len(consolidated_json)} characters")
-        print(f"ROUTING: Target: concept_report_writer_agent")
+        print("ROUTING: Target: concept_report_writer_agent")
 
         # Send consolidated analysis to the report generation stage
         await ctx.send_message(consolidated_json)
@@ -394,7 +391,7 @@ async def adapt_concept_for_analysis(concept_data_json: str, ctx: WorkflowContex
         this concept for development.
         """
 
-        print(f"SUCCESS: Adapted concept data for analysis:")
+        print("SUCCESS: Adapted concept data for analysis:")
         print(f"  - {len(adapted_data['design_content'])} slides with content")
         print(f"  - {len(adapted_data['market_signals'])} market signals identified")
         print(f"  - {len(adapted_data['production_notes'])} production notes found")
@@ -420,9 +417,9 @@ async def adapt_concept_for_analysis(concept_data_json: str, ctx: WorkflowContex
         print("=" * 80)
         print(f"ROUTING: Stored concept metadata in cache with ID: {workflow_id}")
         print(f"ROUTING: Concept: {concept_data.get('concept_file_name')} ({concept_data.get('total_slides')} slides)")
-        print(f"ROUTING: Sending data_package with workflow_id + analysis_prompt")
+        print("ROUTING: Sending data_package with workflow_id + analysis_prompt")
         print(f"ROUTING: Analysis prompt length: {len(analysis_prompt)} characters")
-        print(f"ROUTING: Target: concurrent_fashion_analysis (ConcurrentBuilder workflow)")
+        print("ROUTING: Target: concurrent_fashion_analysis (ConcurrentBuilder workflow)")
 
         # Send the package to the concurrent analysis workflow
         await ctx.send_message(json.dumps(data_package))
@@ -631,8 +628,8 @@ async def convert_report_to_approval_request(report_response: AgentExecutorRespo
     print(f"ROUTING: Received report_response type: {type(report_response)}")
     print(f"ROUTING: Report response attributes: {dir(report_response)}")
 
-    if hasattr(report_response, 'agent_run_response'):
-        print(f"ROUTING: agent_run_response type: {type(report_response.agent_run_response)}")
+    if hasattr(report_response, 'agent_response'):
+        print(f"ROUTING: agent_response type: {type(report_response.agent_response)}")
 
     if hasattr(report_response, 'executor_id'):
         print(f"ROUTING: executor_id: {report_response.executor_id}")
@@ -641,11 +638,11 @@ async def convert_report_to_approval_request(report_response: AgentExecutorRespo
 
     try:
         # Extract the report content from the agent response
-        if hasattr(report_response, 'agent_run_response') and report_response.agent_run_response:
-            if hasattr(report_response.agent_run_response, 'text'):
-                report_content = report_response.agent_run_response.text
+        if hasattr(report_response, 'agent_response') and report_response.agent_response:
+            if hasattr(report_response.agent_response, 'text'):
+                report_content = report_response.agent_response.text
             else:
-                report_content = str(report_response.agent_run_response)
+                report_content = str(report_response.agent_response)
         else:
             report_content = str(report_response)
 
@@ -654,7 +651,7 @@ async def convert_report_to_approval_request(report_response: AgentExecutorRespo
         print("=" * 80)
         print(f"ROUTING: Sending report_content type: {type(report_content)}")
         print(f"ROUTING: Report content length: {len(report_content)} characters")
-        print(f"ROUTING: Target: zava_approval_manager (ZavaConceptApprovalManager)")
+        print("ROUTING: Target: zava_approval_manager (ZavaConceptApprovalManager)")
 
         print("SUCCESS: Sending report content to approval manager")
         await ctx.send_message(report_content)

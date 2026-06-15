@@ -5,18 +5,14 @@ This module contains agent creation functions for various fashion analysis
 tasks including market research, design evaluation, and production assessment.
 """
 
-from typing import List, Any
 import asyncio
+from typing import Any, List
+
 from agent_framework import (
-    ChatMessage,
-    Role,
-    WorkflowExecutor,
-    ConcurrentBuilder,
+    Agent,
     AgentExecutor,
-    AgentExecutorResponse,
-    WorkflowContext,
-    executor
 )
+from agent_framework.orchestrations import ConcurrentBuilder
 
 
 def create_fashion_research_agent(chat_clients_list: List[Any]) -> AgentExecutor:
@@ -58,7 +54,8 @@ def create_fashion_research_agent(chat_clients_list: List[Any]) -> AgentExecutor
 
     # chat_client = chat_clients_list[0]
     chat_client = chat_clients_list[1]
-    research_agent = chat_client.create_agent(
+    research_agent = Agent(
+        client=chat_client,
         instructions=system_prompt,
         name="Fashion Market Research Agent"
     )
@@ -103,7 +100,8 @@ def create_design_evaluation_agent(chat_clients_list: List[Any]) -> AgentExecuto
 
     # chat_client = chat_clients_list[1] if len(chat_clients_list) > 1 else chat_clients_list[0]
     chat_client = chat_clients_list[2] if len(chat_clients_list) > 1 else chat_clients_list[0]
-    design_agent = chat_client.create_agent(
+    design_agent = Agent(
+        client=chat_client,
         instructions=system_prompt,
         name="Fashion Design Evaluation Agent"
     )
@@ -147,7 +145,8 @@ def create_production_feasibility_agent(chat_clients_list: List[Any]) -> AgentEx
 
     # chat_client = chat_clients_list[2] if len(chat_clients_list) > 2 else chat_clients_list[0]
     chat_client = chat_clients_list[3] if len(chat_clients_list) > 2 else chat_clients_list[0]
-    production_agent = chat_client.create_agent(
+    production_agent = Agent(
+        client=chat_client,
         instructions=system_prompt,
         name="Production Feasibility Agent"
     )
@@ -189,7 +188,8 @@ def create_comprehensive_analysis_agent(chat_clients_list: List[Any]) -> AgentEx
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[-1]  # Use the last client in the list
-    comprehensive_agent = chat_client.create_agent(
+    comprehensive_agent = Agent(
+        client=chat_client,
         instructions=system_prompt,
         name="Comprehensive Fashion Analysis Agent"
     )
@@ -221,7 +221,7 @@ async def create_concurrent_fashion_analysis_workflow(chat_clients_list: List[An
     production_agent = create_production_feasibility_agent(chat_clients_list)
 
     # Build concurrent workflow that returns aggregated analysis
-    workflow = ConcurrentBuilder().participants([market_agent, design_agent, production_agent]).build()
+    workflow = ConcurrentBuilder(participants=[market_agent, design_agent, production_agent]).build()
 
     print("Created concurrent fashion analysis workflow with participants:")
     print("   • Fashion Market Research Agent")
@@ -271,7 +271,8 @@ def create_concept_report_writer_agent(chat_clients_list: List[Any]) -> AgentExe
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[0]
-    report_agent = chat_client.create_agent(
+    report_agent = Agent(
+        client=chat_client,
         instructions=system_prompt,
         name="Concept Report Writer Agent"
     )

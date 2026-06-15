@@ -5,26 +5,24 @@ This module handles the human-in-the-loop approval process where Zava team membe
 review and make final decisions on clothing concept submissions.
 """
 
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
 
 from agent_framework import (
     Executor,
     WorkflowContext,
-    RequestInfoMessage,
-    RequestInfoExecutor,
-    RequestResponse,
-    handler
+    handler,
+    response_handler,
 )
 
 
 @dataclass
-class ClothingConceptApprovalRequest(RequestInfoMessage):
+class ClothingConceptApprovalRequest:
     """
     Data structure for requesting human approval of clothing concepts.
 
-    This class extends RequestInfoMessage to provide structured approval
-    requests for Zava's clothing concept evaluation workflow.
+    This is the payload passed to ``ctx.request_info`` so the workflow pauses and
+    surfaces a ``request_info`` event for Zava's clothing concept evaluation workflow.
     """
 
     question: str = "Do you approve this clothing concept? (yes/no)"
@@ -83,8 +81,8 @@ class ZavaConceptApprovalManager(Executor):
         super().__init__(id=id)
 
     @handler
-    async def start_approval(self, analysis_results: Any, ctx: WorkflowContext[ClothingConceptApprovalRequest]) -> None:
-        """Initiates approval request to human."""
+    async def start_approval(self, analysis_results: Any, ctx: WorkflowContext[Any]) -> None:
+        """Initiates approval request to human via ctx.request_info."""
         print("=" * 80)
         print("APPROVAL MANAGER: start_approval handler called")
         print("=" * 80)
@@ -130,29 +128,29 @@ class ZavaConceptApprovalManager(Executor):
         print("APPROVAL MANAGER: Sending approval request to Zava design team...")
         print(f"APPROVAL MANAGER: Approval request type: {type(approval_request)}")
         print(f"APPROVAL MANAGER: Request question: {approval_request.question[:50]}...")
-        await ctx.send_message(approval_request)
+        # Pause the workflow and emit a request_info event. The expected human
+        # response is a plain string ("yes"/"no"), validated via response_type=str.
+        await ctx.request_info(request_data=approval_request, response_type=str)
         print("APPROVAL MANAGER: Approval request sent successfully to human approver")
         print("=" * 80)
 
-    @handler
+    @response_handler
     async def route_decision(
         self,
-        response: RequestResponse[ClothingConceptApprovalRequest, str],
-        ctx: WorkflowContext[ZavaApprovalDecision]
+        original_request: ClothingConceptApprovalRequest,
+        feedback: str,
+        ctx: WorkflowContext[ZavaApprovalDecision],
     ) -> None:
-        """Processes human response and prepares routing decision."""
+        """Processes the human response and prepares the routing decision."""
         print("=" * 80)
-        print("APPROVAL MANAGER: route_decision handler called")
+        print("APPROVAL MANAGER: route_decision response handler called")
         print("=" * 80)
-        print(f"APPROVAL MANAGER: Received response type: {type(response)}")
-        print(f"APPROVAL MANAGER: Response data: {response.data}")
-
-        if hasattr(response, 'original_request'):
-            print(f"APPROVAL MANAGER: Original request type: {type(response.original_request)}")
-            print(f"APPROVAL MANAGER: Original request question: {response.original_request.question[:50]}..." if hasattr(response.original_request, 'question') else "N/A")
+        print(f"APPROVAL MANAGER: Received feedback: {feedback}")
+        print(f"APPROVAL MANAGER: Original request question: "
+              f"{original_request.question[:50]}..." if original_request else "N/A")
 
         print("Processing human approval response...")
-        human_input = (response.data or "").strip().lower()
+        human_input = (feedback or "").strip().lower()
         print(f"APPROVAL MANAGER: Human input normalized: '{human_input}'")
 
         # Parse human input into routing decision
@@ -160,12 +158,12 @@ class ZavaConceptApprovalManager(Executor):
         print(f"APPROVAL MANAGER: Approval status: {approved}")
 
         # Get analysis content from the original request
-        analysis_content = response.original_request.analysis_content if response.original_request else ""
+        analysis_content = original_request.analysis_content if original_request else ""
         print(f"APPROVAL MANAGER: Analysis content length: {len(analysis_content)} chars")
 
         decision = ZavaApprovalDecision(
             approved=approved,
-            feedback=response.data or "",
+            feedback=feedback or "",
             analysis_content=analysis_content
         )
         print(f"APPROVAL MANAGER: Created decision: {decision}")
@@ -309,14 +307,17 @@ def concept_rejection_condition(decision: Any) -> bool:
     return True
 
 
-def create_zava_human_approver() -> RequestInfoExecutor:
+def create_zava_human_approver():
     """
-    Create a human approver executor for Zava clothing concept decisions.
+    Deprecated in the GA migration.
 
-    Returns:
-        RequestInfoExecutor configured for human approval workflow
+    In the GA Agent Framework the human-in-the-loop step is handled inside
+    :class:`ZavaConceptApprovalManager` using ``ctx.request_info`` together with a
+    ``@response_handler``. There is no longer a standalone ``RequestInfoExecutor``
+    node in the workflow graph, so this helper now returns ``None`` and is kept only
+    for backward compatibility with older imports.
     """
-    return RequestInfoExecutor(id="zava_human_approver")
+    return None
 
 
 # Convenience aliases for backward compatibility and clarity
