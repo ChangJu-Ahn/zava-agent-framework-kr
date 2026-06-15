@@ -24,6 +24,7 @@ def start_web_ui(port: int = 8000):
     """
     try:
         import uvicorn
+
         from backend import app
 
         print("Starting Zava Clothing Concept Analysis Web Interface...")
